@@ -14,10 +14,13 @@ interface TokenRecord {
 
 const KV_KEY = "upstox:owner-token"
 
-// Vercel KV (Upstash Redis) in production; a local gitignored JSON file when
-// no KV integration is configured, so `npm run dev` works with zero external
+// Upstash Redis in production; a local gitignored JSON file when no Redis
+// integration is configured, so `npm run dev` works with zero external
 // accounts. Same call sites either way — callers never branch on which one.
-const useKv = Boolean(process.env.KV_REST_API_URL)
+// Mirrors exactly which env vars Redis.fromEnv() itself checks (see
+// node_modules/@upstash/redis/nodejs.mjs) — both must agree, or this gate
+// can silently say "no Redis" while the client would've connected fine.
+const useKv = Boolean(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL)
 
 const LOCAL_STORE_PATH = path.join(process.cwd(), ".local-data", "token-store.json")
 
