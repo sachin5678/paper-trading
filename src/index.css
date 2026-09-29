@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
+/*
+  Design language: "exchange ticker board".
+  NSE/BSE trading floors and the old physical ticker displays are the
+  reference point, not generic SaaS dashboards. Amber is the interface's
+  own accent (brand, focus, chrome) and is never used for market data —
+  green/red stay reserved for gain/loss so the two vocabularies never blur.
+  Violet is reserved exclusively for "this is simulated" signage so a
+  practicing trader can never mistake paper-mode chrome for live data.
+*/
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-bg: #05070c;
+  --color-bg-raised: #0b0e16;
+  --color-bg-inset: #10141d;
+  --color-bg-hover: #161b26;
+  --color-border: #1d2330;
+  --color-border-strong: #2a3140;
+
+  --color-text: #eceff4;
+  --color-text-dim: #8b93a7;
+  --color-text-faint: #565e70;
+
+  --color-amber: #ffb020;
+  --color-amber-dim: #4a3110;
+  --color-amber-soft: #2a1f0d;
+
+  --color-up: #16c784;
+  --color-up-dim: #0e3a2c;
+  --color-down: #ff3b5c;
+  --color-down-dim: #3d1420;
+
+  --color-paper: #8b7bff;
+  --color-paper-dim: #241f42;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .ticker-glow {
+    text-shadow: 0 0 12px currentColor;
+  }
+
+  .bg-grid-floor {
+    background-image:
+      linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--color-amber-dim);
+  color: var(--color-amber);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+}
