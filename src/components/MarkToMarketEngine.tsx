@@ -39,7 +39,14 @@ export function MarkToMarketEngine() {
         const base = UNDERLYINGS.find((u) => u.symbol === symbol)
         if (!base) continue
 
-        const previousPrice = simulatedPrices.current[symbol] ?? base.ltp
+        // Seed from the position's own strike(s), not the static config's
+        // hardcoded ltp. A position opened while a live feed was connected
+        // can sit at a real spot far from our simulated default (e.g. real
+        // NIFTY ~22,600 vs our static seed ~24,812) — anchoring there once
+        // instead means the generated strike window always covers what's
+        // actually held, rather than silently never matching it.
+        const averageHeldStrike = group.reduce((sum, p) => sum + p.strike, 0) / group.length
+        const previousPrice = simulatedPrices.current[symbol] ?? averageHeldStrike
         const nextPrice = randomWalk(previousPrice)
         simulatedPrices.current[symbol] = nextPrice
 
