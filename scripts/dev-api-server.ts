@@ -12,9 +12,9 @@ const PORT = Number(process.env.API_DEV_PORT ?? 3001)
 type Handler = (req: VercelRequest, res: VercelResponse) => unknown
 
 const routes: Record<string, () => Promise<{ default: Handler }>> = {
-  "/api/broker/upstox/authorize": () => import("../api/broker/upstox/authorize"),
-  "/api/broker/upstox/callback": () => import("../api/broker/upstox/callback"),
-  "/api/market/option-chain": () => import("../api/market/option-chain"),
+  "/api/broker/upstox/authorize": () => import("../api/broker/upstox/authorize.js"),
+  "/api/broker/upstox/callback": () => import("../api/broker/upstox/callback.js"),
+  "/api/market/option-chain": () => import("../api/market/option-chain.js"),
 }
 
 function withVercelHelpers(res: ServerResponse): VercelResponse {

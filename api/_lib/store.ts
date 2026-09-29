@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
-import { decrypt, encrypt } from "./crypto"
+import { decrypt, encrypt } from "./crypto.js"
 
 export interface StoredUpstoxToken {
   accessToken: string

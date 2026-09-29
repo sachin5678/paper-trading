@@ -1,4 +1,4 @@
-import type { OptionLeg, OptionRow } from "../../src/lib/types"
+import type { OptionLeg, OptionRow } from "../../src/lib/types.js"
 
 const TOKEN_URL = "https://api.upstox.com/v2/login/authorization/token"
 const OPTION_CHAIN_URL = "https://api.upstox.com/v2/option/chain"

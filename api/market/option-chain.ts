@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
-import type { OptionRow } from "../../src/lib/types"
-import { SUPPORTED_UNDERLYINGS, UPSTOX_INSTRUMENT_KEYS } from "../_lib/instruments"
-import { getUpstoxToken } from "../_lib/store"
-import { fetchLiveOptionChain, resolveContractInfo } from "../_lib/upstox"
+import type { OptionRow } from "../../src/lib/types.js"
+import { SUPPORTED_UNDERLYINGS, UPSTOX_INSTRUMENT_KEYS } from "../_lib/instruments.js"
+import { getUpstoxToken } from "../_lib/store.js"
+import { fetchLiveOptionChain, resolveContractInfo } from "../_lib/upstox.js"
 
 export type OptionChainResponse =
   | { source: "live"; underlyingLtp: number; lotSize: number; rows: OptionRow[] }

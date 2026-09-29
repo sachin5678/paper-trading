@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
-import { signOAuthState } from "../../_lib/crypto"
-import { buildAuthorizeUrl } from "../../_lib/upstox"
+import { signOAuthState } from "../../_lib/crypto.js"
+import { buildAuthorizeUrl } from "../../_lib/upstox.js"
 
 // Owner-only: starts the Upstox OAuth dialog. Gated by a shared secret so a
 // random visitor can't reconnect (or hijack) the site's one broker link. The

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node"
-import { verifyOAuthState } from "../../_lib/crypto"
-import { setUpstoxToken } from "../../_lib/store"
-import { exchangeCodeForToken } from "../../_lib/upstox"
+import { verifyOAuthState } from "../../_lib/crypto.js"
+import { setUpstoxToken } from "../../_lib/store.js"
+import { exchangeCodeForToken } from "../../_lib/upstox.js"
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const code = typeof req.query.code === "string" ? req.query.code : undefined
