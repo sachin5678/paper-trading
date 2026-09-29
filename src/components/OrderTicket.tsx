@@ -44,7 +44,16 @@ export function OrderTicket({ context, onClose, onPlaced }: OrderTicketProps) {
   const price = orderType === "LIMIT" ? limitPrice : context.marketPrice
   const contractSize = lots * context.lotSize
   const totalValue = price * contractSize
-  const estMargin = side === "SELL" ? totalValue * 1.35 : totalValue
+  // Buying an option costs exactly the premium, no more — that's real.
+  // Selling (writing) one carries theoretically unlimited risk, so real
+  // exchanges require SPAN + exposure margin: a VAR-based calculation that
+  // typically runs 10-15% of the contract's notional value, often 10-40x
+  // the premium itself. This is a simplified stand-in for that, not the
+  // real SPAN algorithm, but it's in the right order of magnitude instead
+  // of being a small multiple of premium.
+  const SELL_MARGIN_RATE = 0.12
+  const notionalValue = context.strike * contractSize
+  const estMargin = side === "SELL" ? Math.max(notionalValue * SELL_MARGIN_RATE, totalValue) : totalValue
 
   function handleSubmit() {
     if (!context) return

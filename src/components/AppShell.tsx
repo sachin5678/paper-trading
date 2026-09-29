@@ -3,10 +3,12 @@ import { Sidebar } from "./Sidebar"
 import { Topbar } from "./Topbar"
 import { TickerRibbon } from "./TickerRibbon"
 import { MobileNav } from "./MobileNav"
+import { MarkToMarketEngine } from "./MarkToMarketEngine"
 
 export function AppShell() {
   return (
     <div className="flex min-h-dvh flex-col bg-[var(--color-bg)]">
+      <MarkToMarketEngine />
       <Topbar />
       <TickerRibbon />
       <div className="flex flex-1">
