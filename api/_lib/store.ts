@@ -36,14 +36,14 @@ async function writeLocalStore(data: Record<string, TokenRecord>): Promise<void>
 }
 
 async function kvGet(key: string): Promise<TokenRecord | null> {
-  const { kv } = await import("@vercel/kv")
-  const value = await kv.get<TokenRecord>(key)
+  const { Redis } = await import("@upstash/redis")
+  const value = await Redis.fromEnv().get<TokenRecord>(key)
   return value ?? null
 }
 
 async function kvSet(key: string, value: TokenRecord): Promise<void> {
-  const { kv } = await import("@vercel/kv")
-  await kv.set(key, value)
+  const { Redis } = await import("@upstash/redis")
+  await Redis.fromEnv().set(key, value)
 }
 
 export async function getUpstoxToken(): Promise<StoredUpstoxToken | null> {
