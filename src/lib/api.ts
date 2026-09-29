@@ -16,3 +16,23 @@ export async function fetchLiveOptionChain(underlying: string): Promise<OptionCh
     return { source: "unavailable", reason: "Could not reach the live feed" }
   }
 }
+
+export interface IndexQuoteData {
+  symbol: string
+  ltp: number
+  prevClose: number
+}
+
+export type IndicesFeed =
+  | { source: "live"; quotes: IndexQuoteData[] }
+  | { source: "unavailable"; reason: string }
+
+export async function fetchLiveIndices(): Promise<IndicesFeed> {
+  try {
+    const res = await fetch("/api/market/indices")
+    const json = (await res.json()) as IndicesFeed
+    return json
+  } catch {
+    return { source: "unavailable", reason: "Could not reach the live feed" }
+  }
+}

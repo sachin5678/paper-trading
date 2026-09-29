@@ -3,6 +3,7 @@ import type { OptionLeg, OptionRow } from "../../src/lib/types.js"
 const TOKEN_URL = "https://api.upstox.com/v2/login/authorization/token"
 const OPTION_CHAIN_URL = "https://api.upstox.com/v2/option/chain"
 const OPTION_CONTRACTS_URL = "https://api.upstox.com/v2/option/contract"
+const LTP_QUOTE_URL = "https://api.upstox.com/v3/market-quote/ltp"
 
 export function buildAuthorizeUrl(state: string): string {
   const clientId = requireEnv("UPSTOX_CLIENT_ID")
@@ -194,6 +195,49 @@ function toOptionLeg(leg: UpstoxOptionLeg, kind: "CE" | "PE", inTheMoney: boolea
     volume: leg.market_data.volume,
     inTheMoney,
   }
+}
+
+interface UpstoxLtpQuote {
+  last_price: number
+  instrument_token: string
+  cp: number
+}
+
+interface UpstoxLtpResponse {
+  status: string
+  data: Record<string, UpstoxLtpQuote>
+}
+
+// Despite Upstox's own docs claiming the response's data keys match the
+// requested instrument_key exactly, a live test showed otherwise — the
+// response actually keys by a colon-separated trading-symbol form (e.g.
+// "NSE_INDEX:Nifty 50") while the request uses a pipe ("NSE_INDEX|Nifty
+// 50"). Matching by each entry's own instrument_token field instead sidesteps
+// that entirely and doesn't depend on guessing the exact key transformation.
+export async function fetchLtpQuotes(
+  accessToken: string,
+  instrumentKeys: string[],
+): Promise<Map<string, { ltp: number; prevClose: number }>> {
+  const url = new URL(LTP_QUOTE_URL)
+  url.searchParams.set("instrument_key", instrumentKeys.join(","))
+
+  const res = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (!res.ok) {
+    throw new Error(`Upstox LTP quote request failed: ${res.status} ${await res.text()}`)
+  }
+
+  const json = (await res.json()) as UpstoxLtpResponse
+  const byInstrumentToken = new Map<string, { ltp: number; prevClose: number }>()
+  for (const quote of Object.values(json.data)) {
+    byInstrumentToken.set(quote.instrument_token, { ltp: quote.last_price, prevClose: quote.cp })
+  }
+  return byInstrumentToken
 }
 
 function requireEnv(name: string): string {

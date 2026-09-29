@@ -1,10 +1,34 @@
+import { useEffect, useState } from "react"
 import { INDICES } from "../lib/marketData"
 import { useLiveTicks } from "../lib/useLiveTicks"
+import { fetchLiveIndices, type IndicesFeed } from "../lib/api"
 import { formatNumber } from "../lib/format"
-import { SimBadge } from "./SimBadge"
+import { FeedBadge } from "./FeedBadge"
+
+const POLL_MS = 4000
 
 export function TickerRibbon() {
-  const indices = useLiveTicks(INDICES)
+  const simulated = useLiveTicks(INDICES)
+  const [feed, setFeed] = useState<IndicesFeed | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    async function poll() {
+      const result = await fetchLiveIndices()
+      if (!cancelled) setFeed(result)
+    }
+    poll()
+    const id = window.setInterval(poll, POLL_MS)
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
+    }
+  }, [])
+
+  const isLive = feed?.source === "live"
+  const indices = isLive
+    ? INDICES.map((fallback) => feed.quotes.find((q) => q.symbol === fallback.symbol) ?? fallback)
+    : simulated
 
   return (
     <div className="flex items-center gap-6 overflow-x-auto border-b border-[var(--color-border)] bg-[#03040a] px-4 py-2 text-sm">
@@ -35,7 +59,7 @@ export function TickerRibbon() {
         })}
       </div>
       <div className="ml-auto shrink-0">
-        <SimBadge />
+        <FeedBadge source={isLive ? "live" : "simulated"} />
       </div>
     </div>
   )

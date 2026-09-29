@@ -15,6 +15,7 @@ const routes: Record<string, () => Promise<{ default: Handler }>> = {
   "/api/broker/upstox/authorize": () => import("../api/broker/upstox/authorize.js"),
   "/api/broker/upstox/callback": () => import("../api/broker/upstox/callback.js"),
   "/api/market/option-chain": () => import("../api/market/option-chain.js"),
+  "/api/market/indices": () => import("../api/market/indices.js"),
 }
 
 function withVercelHelpers(res: ServerResponse): VercelResponse {
