@@ -8,6 +8,7 @@ import Portfolio from "./pages/Portfolio"
 import Orders from "./pages/Orders"
 import AdminBroker from "./pages/AdminBroker"
 import Login from "./pages/Login"
+import IntradayMtm from "./pages/IntradayMtm"
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="option-chain" element={<OptionChain />} />
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="orders" element={<Orders />} />
+        <Route path="mtm" element={<IntradayMtm />} />
         <Route path="admin/broker" element={<AdminBroker />} />
         <Route path="login" element={<Login />} />
       </Route>

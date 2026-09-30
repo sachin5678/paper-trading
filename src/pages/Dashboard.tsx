@@ -7,14 +7,12 @@ import { dailyRecordPnl, positionPnl, STARTING_CAPITAL, usePortfolioStore } from
 import { useTodayDateString } from "../lib/useToday"
 import { Panel } from "../components/Panel"
 import { PnlPercent, PnlText } from "../components/PnlText"
-import { Sparkline } from "../components/Sparkline"
 
 export default function Dashboard() {
   const cashBalance = usePortfolioStore((s) => s.cashBalance)
   const positions = usePortfolioStore((s) => s.positions)
   const orders = usePortfolioStore((s) => s.orders)
   const dailyPnlHistory = usePortfolioStore((s) => s.dailyPnlHistory)
-  const todayIntradayPoints = usePortfolioStore((s) => s.todayIntradayPoints)
   const today = useTodayDateString()
 
   const openPnl = positions.reduce((sum, p) => sum + positionPnl(p), 0)
@@ -24,34 +22,28 @@ export default function Dashboard() {
   const todayStartEquity = todayRecord?.startEquity ?? equity
   const todayPnl = todayRecord ? dailyRecordPnl(todayRecord) : 0
   const todayPnlPct = todayStartEquity !== 0 ? (todayPnl / todayStartEquity) * 100 : 0
-  const intradaySeries = todayIntradayPoints.map((p) => p.equity - todayStartEquity)
 
   const watchlist = useLiveTicks(WATCHLIST)
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel eyebrow="Real mark-to-market, not a simulated backfill" title="Today's P&L" className="lg:col-span-2">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
-                Since you opened the app today
-              </p>
-              <PnlText value={todayPnl} decimals={0} className="mt-1 text-3xl" />
-              <PnlPercent value={todayPnlPct} className="mt-1 text-xs" />
-            </div>
-            {intradaySeries.length >= 2 ? (
-              <Sparkline
-                points={intradaySeries}
-                width={280}
-                height={64}
-                color={todayPnl >= 0 ? "var(--color-up)" : "var(--color-down)"}
-              />
-            ) : (
-              <p className="text-xs text-[var(--color-text-faint)]">
-                Check back in a bit — building today's chart as prices tick.
-              </p>
-            )}
+        <Panel
+          eyebrow="Real mark-to-market, not a simulated backfill"
+          title="Today's P&L"
+          className="lg:col-span-2"
+          action={
+            <Link to="/app/mtm" className="text-xs text-[var(--color-amber)] hover:underline">
+              Intraday chart
+            </Link>
+          }
+        >
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
+              Since you opened the app today
+            </p>
+            <PnlText value={todayPnl} decimals={0} className="mt-1 text-3xl" />
+            <PnlPercent value={todayPnlPct} className="mt-1 text-xs" />
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-y-3 divide-[var(--color-border)] border-t border-[var(--color-border)] pt-4 sm:grid-cols-4 sm:divide-x">

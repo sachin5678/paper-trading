@@ -1,4 +1,4 @@
-import { LayoutGrid, ListChecks, Newspaper, Wallet, Grid3x3 } from "lucide-react"
+import { LayoutGrid, ListChecks, Newspaper, Wallet, Grid3x3, LineChart } from "lucide-react"
 import { NavLink } from "react-router-dom"
 import clsx from "clsx"
 
@@ -8,6 +8,7 @@ const NAV = [
   { to: "/app/option-chain", label: "Option Chain", icon: Grid3x3 },
   { to: "/app/portfolio", label: "Portfolio", icon: Wallet },
   { to: "/app/orders", label: "Orders", icon: Newspaper },
+  { to: "/app/mtm", label: "Intraday MTM", icon: LineChart },
 ]
 
 export function Sidebar() {
