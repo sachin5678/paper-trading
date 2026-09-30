@@ -1,4 +1,4 @@
-# Paisa Paper — NSE/BSE options paper-trading terminal
+# Bazar Paper — NSE/BSE options paper-trading terminal
 
 ## Status: Phase B (per-user accounts) — done, connected to Neon Postgres
 
@@ -78,7 +78,7 @@ per-visitor broker linking, and server-persisted multi-user accounts.
 ## What this is
 
 A practice trading terminal for NSE and BSE index/stock **options (F&O)**. Users get
-₹10,00,000 in virtual capital, a live-feeling option chain for NIFTY, BANKNIFTY and
+₹20,00,000 in virtual capital, a live-feeling option chain for NIFTY, BANKNIFTY and
 SENSEX, and can place simulated buy/sell orders that mark-to-market against a
 simulated price feed. No real money, no real broker connection, no real market data —
 everything is client-side and clearly labeled "simulated."

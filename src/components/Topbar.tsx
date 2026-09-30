@@ -27,7 +27,7 @@ export function Topbar() {
     <header className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-bg-raised)] px-4 py-3">
       <div className="flex items-baseline gap-2">
         <span className="font-mono text-lg font-semibold tracking-tight text-[var(--color-amber)]">
-          पैसा<span className="text-[var(--color-text)]">Paper</span>
+          बाज़ार<span className="text-[var(--color-text)]">Paper</span>
         </span>
       </div>
 

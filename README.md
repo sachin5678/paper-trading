@@ -1,7 +1,7 @@
-# Paisa Paper
+# Bazar Paper
 
 A paper-trading terminal for NSE and BSE index options (F&O) — NIFTY, BANKNIFTY and
-SENSEX. Every account starts with ₹10,00,000 in virtual capital; every fill is
+SENSEX. Every account starts with ₹20,00,000 in virtual capital; every fill is
 simulated. See [PLAN.md](PLAN.md) for the full design rationale and project status.
 
 ## Stack
