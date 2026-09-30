@@ -1,18 +1,37 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import type { OrderDraft, OrderRecord, Position } from "./types"
+import type { DailyPnlRecord, IntradayPoint, OrderDraft, OrderRecord, Position } from "./types"
 
 export const STARTING_CAPITAL = 1_000_000
+
+// Only points from an in-progress trading session are kept, throttled to
+// avoid ballooning the persisted store if a tab is left open for hours.
+const INTRADAY_POINT_MIN_GAP_MS = 60_000
+// ~13 months at one row/day — plenty for a "this year" rollup without the
+// history growing unbounded forever.
+const MAX_DAILY_HISTORY = 400
 
 interface PortfolioState {
   cashBalance: number
   positions: Position[]
   orders: OrderRecord[]
   watchlistSymbols: string[]
+  dailyPnlHistory: DailyPnlRecord[]
+  todayIntradayPoints: IntradayPoint[]
   placeOrder: (draft: OrderDraft) => void
   markToMarket: (ltpBySymbolKey: Record<string, number>) => void
+  recordEquitySample: (equity: number) => void
   resetAccount: () => void
   toggleWatchlist: (symbol: string) => void
+}
+
+// Local calendar date, not UTC — IST is ahead of UTC, so toISOString() can
+// silently land on the wrong day for early-morning samples.
+export function localDateString(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
 }
 
 function positionKey(p: Pick<Position, "underlying" | "kind" | "strike" | "expiry">): string {
@@ -30,6 +49,8 @@ export const usePortfolioStore = create<PortfolioState>()(
       positions: [],
       orders: [],
       watchlistSymbols: ["RELIANCE", "TCS", "HDFCBANK", "INFY"],
+      dailyPnlHistory: [],
+      todayIntradayPoints: [],
 
       placeOrder: (draft) => {
         const fillPrice = draft.orderType === "LIMIT" && draft.limitPrice ? draft.limitPrice : draft.marketPrice
@@ -137,8 +158,43 @@ export const usePortfolioStore = create<PortfolioState>()(
         }))
       },
 
+      recordEquitySample: (equity) => {
+        set((state) => {
+          const today = localDateString(new Date())
+          const history = [...state.dailyPnlHistory]
+          const todayIndex = history.findIndex((r) => r.date === today)
+
+          if (todayIndex === -1) {
+            // First sample of a new calendar day — the previous session's
+            // intraday points (if any) belong to a day that's already
+            // finalized in history, so they're dropped rather than carried
+            // over into today's chart.
+            history.push({ date: today, startEquity: equity, endEquity: equity })
+            return {
+              dailyPnlHistory: history.slice(-MAX_DAILY_HISTORY),
+              todayIntradayPoints: [{ t: Date.now(), equity }],
+            }
+          }
+
+          history[todayIndex] = { ...history[todayIndex], endEquity: equity }
+          const points = state.todayIntradayPoints
+          const last = points[points.length - 1]
+          const shouldAddPoint = !last || Date.now() - last.t >= INTRADAY_POINT_MIN_GAP_MS
+          return {
+            dailyPnlHistory: history,
+            todayIntradayPoints: shouldAddPoint ? [...points, { t: Date.now(), equity }] : points,
+          }
+        })
+      },
+
       resetAccount: () =>
-        set({ cashBalance: STARTING_CAPITAL, positions: [], orders: [] }),
+        set({
+          cashBalance: STARTING_CAPITAL,
+          positions: [],
+          orders: [],
+          dailyPnlHistory: [],
+          todayIntradayPoints: [],
+        }),
 
       toggleWatchlist: (symbol) =>
         set((state) => ({
@@ -154,4 +210,14 @@ export const usePortfolioStore = create<PortfolioState>()(
 export function positionPnl(position: Position): number {
   const direction = position.side === "BUY" ? 1 : -1
   return direction * (position.ltp - position.avgPrice) * position.lots * position.lotSize
+}
+
+export function dailyRecordPnl(record: DailyPnlRecord): number {
+  return record.endEquity - record.startEquity
+}
+
+export function sumPnlForPrefix(history: DailyPnlRecord[], datePrefix: string): number {
+  return history
+    .filter((r) => r.date.startsWith(datePrefix))
+    .reduce((sum, r) => sum + dailyRecordPnl(r), 0)
 }

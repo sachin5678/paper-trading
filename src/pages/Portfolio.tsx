@@ -1,21 +1,30 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { formatCompactInr, formatInr, formatNumber } from "../lib/format"
-import { positionPnl, STARTING_CAPITAL, usePortfolioStore } from "../lib/store"
+import { dailyRecordPnl, positionPnl, STARTING_CAPITAL, sumPnlForPrefix, usePortfolioStore } from "../lib/store"
+import { useTodayDateString } from "../lib/useToday"
 import { Panel } from "../components/Panel"
 import { PnlText } from "../components/PnlText"
 import { OrderTicket, type OrderTicketContext } from "../components/OrderTicket"
 import { Toast } from "../components/Toast"
 
+const RECENT_DAYS_SHOWN = 14
+
 export default function Portfolio() {
   const cashBalance = usePortfolioStore((s) => s.cashBalance)
   const positions = usePortfolioStore((s) => s.positions)
+  const dailyPnlHistory = usePortfolioStore((s) => s.dailyPnlHistory)
   const [ticket, setTicket] = useState<OrderTicketContext | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
   const openPnl = positions.reduce((sum, p) => sum + positionPnl(p), 0)
   const marketValue = positions.reduce((sum, p) => sum + p.ltp * p.lots * p.lotSize, 0)
   const equity = cashBalance + marketValue
+
+  const today = useTodayDateString()
+  const monthPnl = sumPnlForPrefix(dailyPnlHistory, today.slice(0, 7))
+  const yearPnl = sumPnlForPrefix(dailyPnlHistory, today.slice(0, 4))
+  const recentDays = [...dailyPnlHistory].reverse().slice(0, RECENT_DAYS_SHOWN)
 
   return (
     <div className="space-y-4">
@@ -105,6 +114,74 @@ export default function Portfolio() {
               </tbody>
             </table>
           </div>
+        )}
+      </Panel>
+
+      <Panel
+        title="P&L history"
+        eyebrow="Daily equity change · this device only"
+        padded={recentDays.length === 0}
+      >
+        {recentDays.length === 0 ? (
+          <div className="flex flex-col items-center gap-2.5 px-4 py-8 text-center">
+            <p className="text-sm font-medium text-[var(--color-text)]">No days recorded yet</p>
+            <p className="max-w-sm text-xs text-[var(--color-text-dim)]">
+              Each day you have the app open gets its own row here, so you can track cumulative P&amp;L
+              by month and year. Come back tomorrow to see the first one.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 divide-x divide-[var(--color-border)] border-b border-[var(--color-border)] pb-4">
+              <div className="pr-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
+                  This month
+                </p>
+                <PnlText value={monthPnl} decimals={0} className="mt-1 text-lg" />
+              </div>
+              <div className="pl-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
+                  This year
+                </p>
+                <PnlText value={yearPnl} decimals={0} className="mt-1 text-lg" />
+              </div>
+            </div>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[360px] text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
+                    <th className="py-2">Date</th>
+                    <th className="py-2 text-right">Start equity</th>
+                    <th className="py-2 text-right">End equity</th>
+                    <th className="py-2 text-right">P&amp;L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentDays.map((record) => (
+                    <tr key={record.date} className="border-b border-[var(--color-border)]/60 font-mono font-tabular text-[13px]">
+                      <td className="py-2 font-sans text-[var(--color-text)]">
+                        {record.date === today ? "Today" : record.date}
+                      </td>
+                      <td className="py-2 text-right text-[var(--color-text-dim)]">
+                        {formatCompactInr(record.startEquity)}
+                      </td>
+                      <td className="py-2 text-right text-[var(--color-text-dim)]">
+                        {formatCompactInr(record.endEquity)}
+                      </td>
+                      <td className="py-2 text-right">
+                        <PnlText value={dailyRecordPnl(record)} decimals={0} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-[11px] text-[var(--color-text-faint)]">
+              Built from equity samples taken whenever this app was open on this device — a day it was
+              never opened has no row, and "start of day" means the first sample taken that day, not a
+              true market-open snapshot.
+            </p>
+          </>
         )}
       </Panel>
 

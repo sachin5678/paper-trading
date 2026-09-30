@@ -1,5 +1,21 @@
 # Paisa Paper — NSE/BSE options paper-trading terminal
 
+## Daily & intraday P&L tracking
+
+`DailyPnlEngine` (mounted in AppShell, alongside `MarkToMarketEngine`) samples total
+equity every 15s and rolls it into `dailyPnlHistory` (one row per calendar day) and
+`todayIntradayPoints` (throttled to one point/minute, reset on day change) in the
+portfolio store. Dashboard shows a real intraday P&L chart from `todayIntradayPoints`
+(replacing an earlier fake cosmetic sparkline that was never real history — worth
+knowing that existed if you see references to `buildEquityHistory` in old commits).
+Portfolio shows month/year cumulative P&L and a recent-days table.
+
+This is client-only and reactive to whenever the app happens to be open on a given
+device — there's no server-side end-of-day job, so a day the app was never opened
+leaves no row, and "start of day" means "first sample taken that day," not a true
+market-open snapshot. A real ledger would need the server-persisted accounts already
+deferred to Phase B below.
+
 ## Status: Phase A (live Upstox feed) — done and connected
 
 The option chain page now shows a real live NIFTY/BANKNIFTY/SENSEX chain (`FeedBadge`

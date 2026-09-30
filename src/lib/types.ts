@@ -88,3 +88,15 @@ export interface OrderDraft {
   limitPrice?: number
   marketPrice: number
 }
+
+export interface DailyPnlRecord {
+  /** Local calendar date, YYYY-MM-DD — not UTC, see localDateString in store.ts. */
+  date: string
+  startEquity: number
+  endEquity: number
+}
+
+export interface IntradayPoint {
+  t: number
+  equity: number
+}

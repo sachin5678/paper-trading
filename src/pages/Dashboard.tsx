@@ -1,9 +1,10 @@
-import { useMemo, type ReactNode } from "react"
+import { type ReactNode } from "react"
 import { Link } from "react-router-dom"
 import { WATCHLIST } from "../lib/marketData"
 import { useLiveTicks } from "../lib/useLiveTicks"
 import { formatCompactInr, formatNumber } from "../lib/format"
-import { positionPnl, STARTING_CAPITAL, usePortfolioStore } from "../lib/store"
+import { dailyRecordPnl, positionPnl, STARTING_CAPITAL, usePortfolioStore } from "../lib/store"
+import { useTodayDateString } from "../lib/useToday"
 import { Panel } from "../components/Panel"
 import { PnlPercent, PnlText } from "../components/PnlText"
 import { Sparkline } from "../components/Sparkline"
@@ -12,39 +13,49 @@ export default function Dashboard() {
   const cashBalance = usePortfolioStore((s) => s.cashBalance)
   const positions = usePortfolioStore((s) => s.positions)
   const orders = usePortfolioStore((s) => s.orders)
+  const dailyPnlHistory = usePortfolioStore((s) => s.dailyPnlHistory)
+  const todayIntradayPoints = usePortfolioStore((s) => s.todayIntradayPoints)
+  const today = useTodayDateString()
 
   const openPnl = positions.reduce((sum, p) => sum + positionPnl(p), 0)
   const equity = cashBalance + positions.reduce((sum, p) => sum + p.ltp * p.lots * p.lotSize, 0)
 
-  const equityHistory = useMemo(() => buildEquityHistory(equity), [equity])
+  const todayRecord = dailyPnlHistory.find((r) => r.date === today)
+  const todayStartEquity = todayRecord?.startEquity ?? equity
+  const todayPnl = todayRecord ? dailyRecordPnl(todayRecord) : 0
+  const todayPnlPct = todayStartEquity !== 0 ? (todayPnl / todayStartEquity) * 100 : 0
+  const intradaySeries = todayIntradayPoints.map((p) => p.equity - todayStartEquity)
+
   const watchlist = useLiveTicks(WATCHLIST)
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel eyebrow="Since account start · simulated" title="Account" className="lg:col-span-2">
+        <Panel eyebrow="Real mark-to-market, not a simulated backfill" title="Today's P&L" className="lg:col-span-2">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
-                Virtual equity
+                Since you opened the app today
               </p>
-              <p className="mt-1 font-mono font-tabular text-3xl text-[var(--color-text)]">
-                {formatCompactInr(equity)}
-              </p>
-              <PnlPercent
-                value={((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100}
-                className="mt-1 text-xs"
-              />
+              <PnlText value={todayPnl} decimals={0} className="mt-1 text-3xl" />
+              <PnlPercent value={todayPnlPct} className="mt-1 text-xs" />
             </div>
-            <Sparkline
-              points={equityHistory}
-              width={280}
-              height={64}
-              color={equity >= STARTING_CAPITAL ? "var(--color-up)" : "var(--color-down)"}
-            />
+            {intradaySeries.length >= 2 ? (
+              <Sparkline
+                points={intradaySeries}
+                width={280}
+                height={64}
+                color={todayPnl >= 0 ? "var(--color-up)" : "var(--color-down)"}
+              />
+            ) : (
+              <p className="text-xs text-[var(--color-text-faint)]">
+                Check back in a bit — building today's chart as prices tick.
+              </p>
+            )}
           </div>
 
-          <div className="mt-5 grid grid-cols-3 divide-x divide-[var(--color-border)] border-t border-[var(--color-border)] pt-4">
+          <div className="mt-5 grid grid-cols-2 gap-y-3 divide-[var(--color-border)] border-t border-[var(--color-border)] pt-4 sm:grid-cols-4 sm:divide-x">
+            <MiniStat label="Virtual equity" value={formatCompactInr(equity)} />
             <MiniStat label="Cash balance" value={formatCompactInr(cashBalance)} />
             <MiniStat label="Open P&L" value={<PnlText value={openPnl} decimals={0} className="text-base" />} />
             <MiniStat label="Open positions" value={String(positions.length)} />
@@ -158,21 +169,4 @@ function EmptyState({ title, body, action }: { title: string; body: string; acti
       {action}
     </div>
   )
-}
-
-function buildEquityHistory(currentEquity: number, points = 24): number[] {
-  let seed = Math.round(currentEquity) % 97
-  const rand = () => {
-    seed = (seed * 9301 + 49297) % 233280
-    return seed / 233280
-  }
-  const series: number[] = []
-  for (let i = 0; i < points - 1; i++) {
-    const t = i / (points - 1)
-    const base = STARTING_CAPITAL + (currentEquity - STARTING_CAPITAL) * t
-    const noise = (rand() - 0.5) * STARTING_CAPITAL * 0.01
-    series.push(base + noise)
-  }
-  series.push(currentEquity)
-  return series
 }
