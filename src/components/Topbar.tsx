@@ -1,4 +1,5 @@
-import { RotateCcw } from "lucide-react"
+import { RotateCcw, Settings } from "lucide-react"
+import { readStoredAdminSecret } from "../lib/adminSecret"
 import { formatCompactInr } from "../lib/format"
 import { positionPnl, usePortfolioStore } from "../lib/store"
 import { PnlText } from "./PnlText"
@@ -10,6 +11,14 @@ export function Topbar() {
 
   const openPnl = positions.reduce((sum, p) => sum + positionPnl(p), 0)
   const equity = cashBalance + positions.reduce((sum, p) => sum + p.ltp * p.lots * p.lotSize, 0)
+
+  // Once the admin secret is remembered on this device (see AdminBroker.tsx),
+  // skip straight to the real connect action instead of the intermediate
+  // page — the page is only needed the first time, to type it in.
+  const rememberedSecret = readStoredAdminSecret()
+  const brokerHref = rememberedSecret
+    ? `/api/broker/upstox/authorize?secret=${encodeURIComponent(rememberedSecret)}`
+    : "/app/admin/broker"
 
   return (
     <header className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-bg-raised)] px-4 py-3">
@@ -46,6 +55,17 @@ export function Topbar() {
           <RotateCcw size={14} strokeWidth={1.75} aria-hidden="true" />
           <span className="hidden sm:inline">Reset account</span>
         </button>
+        {/* Plain anchor, not <Link> — one branch points at a real API route
+            (/api/broker/upstox/authorize), which needs an actual browser
+            navigation to hit the server redirect, not client-side routing. */}
+        <a
+          href={brokerHref}
+          title="Broker connection (owner only)"
+          aria-label="Broker connection"
+          className="flex min-h-9 min-w-9 items-center justify-center border border-[var(--color-border)] text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+        >
+          <Settings size={14} strokeWidth={1.75} aria-hidden="true" />
+        </a>
       </div>
     </header>
   )
