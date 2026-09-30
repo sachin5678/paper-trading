@@ -2,7 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { DailyPnlRecord, IntradayPoint, OrderDraft, OrderRecord, Position } from "./types"
 
-export const STARTING_CAPITAL = 1_000_000
+export const STARTING_CAPITAL = 2_000_000
 
 // Only points from an in-progress trading session are kept, throttled to
 // avoid ballooning the persisted store if a tab is left open for hours.

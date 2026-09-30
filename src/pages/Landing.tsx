@@ -36,7 +36,7 @@ export default function Landing() {
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--color-text-dim)]">
               Paisa Paper gives you a live-feeling option chain, real lot sizes and strike intervals, and{" "}
-              <span className="text-[var(--color-text)]">₹10,00,000</span> in virtual capital — so you can learn how
+              <span className="text-[var(--color-text)]">₹20,00,000</span> in virtual capital — so you can learn how
               F&amp;O actually trades before a single rupee is at risk.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-4">
@@ -65,8 +65,8 @@ export default function Landing() {
               />
               <SpecItem
                 eyebrow="Starting capital"
-                claim="₹10,00,000 virtual"
-                body="Every account opens with ten lakh in play money. Reset it in one tap and start fresh whenever you want."
+                claim="₹20,00,000 virtual"
+                body="Every account opens with twenty lakh in play money. Reset it in one tap and start fresh whenever you want."
               />
               <SpecItem
                 eyebrow="Settlement"
@@ -82,7 +82,7 @@ export default function Landing() {
             How it works
           </p>
           <div className="mt-5 grid gap-6 sm:grid-cols-3">
-            <Step n={1} title="Get your virtual capital" body="Every account opens with ₹10,00,000 in play money — no funding step, no waiting." />
+            <Step n={1} title="Get your virtual capital" body="Every account opens with ₹20,00,000 in play money — no funding step, no waiting." />
             <Step n={2} title="Trade the chain" body="Pick NIFTY, BANKNIFTY or SENSEX, choose a strike and expiry, then place a buy or sell." />
             <Step n={3} title="Track your P&L" body="Watch positions mark to the live simulated price and learn from every fill you make." />
           </div>

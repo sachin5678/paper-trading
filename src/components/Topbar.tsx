@@ -1,7 +1,7 @@
 import { RotateCcw, Settings, User } from "lucide-react"
 import { Link } from "react-router-dom"
 import { readStoredAdminSecret } from "../lib/adminSecret"
-import { logOut, useAuthStore } from "../lib/authClient"
+import { useAuthStore } from "../lib/authClient"
 import { formatCompactInr } from "../lib/format"
 import { positionPnl, usePortfolioStore } from "../lib/store"
 import { PnlText } from "./PnlText"
@@ -49,7 +49,7 @@ export function Topbar() {
         <button
           type="button"
           onClick={() => {
-            if (window.confirm("Reset your practice account back to ₹10,00,000 virtual capital? This clears all positions and orders.")) {
+            if (window.confirm("Reset your practice account back to ₹20,00,000 virtual capital? This clears all positions and orders.")) {
               resetAccount()
             }
           }}
@@ -58,25 +58,14 @@ export function Topbar() {
           <RotateCcw size={14} strokeWidth={1.75} aria-hidden="true" />
           <span className="hidden sm:inline">Reset account</span>
         </button>
-        {session ? (
-          <button
-            type="button"
-            onClick={logOut}
-            title={`Signed in as ${session.username} — click to sign out`}
-            className="flex min-h-9 items-center gap-1.5 border border-[var(--color-border)] px-2.5 py-1.5 text-xs text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
-          >
-            <User size={14} strokeWidth={1.75} aria-hidden="true" />
-            <span className="hidden sm:inline">{session.username}</span>
-          </button>
-        ) : (
-          <Link
-            to="/app/login"
-            className="flex min-h-9 items-center gap-1.5 border border-[var(--color-border)] px-2.5 py-1.5 text-xs text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
-          >
-            <User size={14} strokeWidth={1.75} aria-hidden="true" />
-            <span className="hidden sm:inline">Sign in</span>
-          </Link>
-        )}
+        <Link
+          to="/app/login"
+          title={session ? `Signed in as ${session.username}` : "Sign in"}
+          className="flex min-h-9 items-center gap-1.5 border border-[var(--color-border)] px-2.5 py-1.5 text-xs text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]"
+        >
+          <User size={14} strokeWidth={1.75} aria-hidden="true" />
+          <span className="hidden sm:inline">{session ? session.username : "Sign in"}</span>
+        </Link>
         {/* Plain anchor, not <Link> — one branch points at a real API route
             (/api/broker/upstox/authorize), which needs an actual browser
             navigation to hit the server redirect, not client-side routing. */}
