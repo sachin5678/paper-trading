@@ -6,7 +6,7 @@ import { formatNumber } from "../lib/format"
 import { UNDERLYINGS, buildOptionChain, upcomingExpiries } from "../lib/marketData"
 import { useLiveTicks } from "../lib/useLiveTicks"
 
-const PREVIEW_EXPIRY = upcomingExpiries(1)[0]
+const PREVIEW_EXPIRY = upcomingExpiries(UNDERLYINGS[0].symbol, 1)[0]
 
 export default function Landing() {
   return (

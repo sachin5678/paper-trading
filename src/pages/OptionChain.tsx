@@ -10,7 +10,6 @@ import { FeedBadge } from "../components/FeedBadge"
 import { OrderTicket, type OrderTicketContext } from "../components/OrderTicket"
 import { Toast } from "../components/Toast"
 
-const EXPIRIES = upcomingExpiries(3)
 // The live feed always serves the nearest real expiry (resolved server-side
 // against Upstox's contract calendar), which only lines up with our first,
 // synthetic "current week" tab. Other tabs stay simulated-only for this phase.
@@ -18,6 +17,10 @@ const LIVE_FEED_POLL_MS = 4000
 
 export default function OptionChain() {
   const [underlyingSymbol, setUnderlyingSymbol] = useState(UNDERLYINGS[0].symbol)
+  // Each underlying has its own real weekly expiry weekday (NIFTY/BANKNIFTY
+  // Tuesday, SENSEX Thursday) — recomputed per underlying, not a single
+  // fixed list shared by all three.
+  const EXPIRIES = useMemo(() => upcomingExpiries(underlyingSymbol, 3), [underlyingSymbol])
   const [expiry, setExpiry] = useState(EXPIRIES[0])
   const [ticket, setTicket] = useState<OrderTicketContext | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -27,6 +30,13 @@ export default function OptionChain() {
   // (a separate API call, out of scope for this phase). Reset whenever the
   // underlying or tab changes, alongside `feed`, in the same effect below.
   const [sessionOpenPrice, setSessionOpenPrice] = useState<number | null>(null)
+
+  // Switching underlying invalidates the previously-selected expiry label
+  // (a different weekday), so snap back to that underlying's nearest one.
+  useEffect(() => {
+    setExpiry(EXPIRIES[0])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [underlyingSymbol])
 
   const underlyingBase = UNDERLYINGS.find((u) => u.symbol === underlyingSymbol)!
   const [simulatedLive] = useLiveTicks([underlyingBase], 2200)

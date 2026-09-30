@@ -35,17 +35,27 @@ export function randomWalk(price: number, volatility = 0.0006): number {
   return Math.max(1, price * (1 + drift))
 }
 
-export function upcomingExpiries(count = 3): string[] {
+// Weekly expiry weekday per underlying (Date#getDay() values), confirmed
+// against each one's real Upstox contract calendar while building the live
+// feed: NIFTY and BANKNIFTY both landed on Tuesday, SENSEX on Thursday.
+// NSE/BSE have changed these before, so treat this as a snapshot, not a
+// permanent fact — the same reason the simulated tabs shouldn't be trusted
+// as a source of truth once live data is available.
+const EXPIRY_WEEKDAY: Record<string, number> = {
+  NIFTY: 2,
+  BANKNIFTY: 2,
+  SENSEX: 4,
+}
+
+export function upcomingExpiries(underlyingSymbol: string, count = 3): string[] {
+  const weekday = EXPIRY_WEEKDAY[underlyingSymbol] ?? 2
   const out: string[] = []
   const now = new Date()
   const d = new Date(now)
-  // Nearest Tuesday, including today if today is one — confirmed against
-  // Upstox's real NIFTY contract calendar while building the live feed
-  // (2 = Tuesday in Date#getDay()). Deliberately no `|| 7` fallback: if
-  // today is the expiry day, that's still the nearest expiry, not next
-  // week's. NSE has changed this weekly expiry day more than once, so
-  // treat "Tuesday" as a snapshot, not a permanent fact.
-  d.setDate(d.getDate() + ((2 - d.getDay() + 7) % 7))
+  // Nearest matching weekday, including today if today is one. Deliberately
+  // no `|| 7` fallback: if today is the expiry day, that's still the
+  // nearest expiry, not next week's.
+  d.setDate(d.getDate() + ((weekday - d.getDay() + 7) % 7))
   for (let i = 0; i < count; i++) {
     const expiry = new Date(d)
     expiry.setDate(d.getDate() + i * 7)
