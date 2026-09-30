@@ -18,11 +18,85 @@ interface PortfolioState {
   watchlistSymbols: string[]
   dailyPnlHistory: DailyPnlRecord[]
   todayIntradayPoints: IntradayPoint[]
-  placeOrder: (draft: OrderDraft) => void
+  /** Returns whether it filled immediately or is now resting as PENDING. */
+  placeOrder: (draft: OrderDraft) => { status: "FILLED" | "PENDING"; price: number }
+  fillPendingOrder: (orderId: string, fillPrice: number) => void
+  cancelOrder: (orderId: string) => void
   markToMarket: (ltpBySymbolKey: Record<string, number>) => void
   recordEquitySample: (equity: number) => void
   resetAccount: () => void
   toggleWatchlist: (symbol: string) => void
+}
+
+// A BUY limit only makes sense at or below the market (you're capping what
+// you'll pay); a SELL limit only makes sense at or above it (you're setting
+// a floor on what you'll accept). "Marketable" means the current price
+// already satisfies that — i.e. it can fill right now instead of resting.
+export function isMarketable(side: "BUY" | "SELL", limitPrice: number, marketPrice: number): boolean {
+  return side === "BUY" ? marketPrice <= limitPrice : marketPrice >= limitPrice
+}
+
+function applyFillToPositions(
+  positions: Position[],
+  fill: { underlying: string; kind: Position["kind"]; strike: number; expiry: string; side: Position["side"]; lots: number; lotSize: number },
+  fillPrice: number,
+  markPrice: number,
+): Position[] {
+  const key = positionKey(fill)
+  const existing = positions.find((p) => positionKey(p) === key && p.side === fill.side)
+  const opposite = positions.find((p) => positionKey(p) === key && p.side !== fill.side)
+
+  if (opposite) {
+    const closingLots = Math.min(opposite.lots, fill.lots)
+    const remainingLots = opposite.lots - closingLots
+    let next = positions
+      .map((p) => (p === opposite ? (remainingLots > 0 ? { ...p, lots: remainingLots } : null) : p))
+      .filter((p): p is Position => p !== null)
+
+    const leftoverNewLots = fill.lots - closingLots
+    if (leftoverNewLots > 0) {
+      next = [
+        ...next,
+        {
+          id: crypto.randomUUID(),
+          underlying: fill.underlying,
+          kind: fill.kind,
+          strike: fill.strike,
+          expiry: fill.expiry,
+          side: fill.side,
+          lots: leftoverNewLots,
+          lotSize: fill.lotSize,
+          avgPrice: fillPrice,
+          ltp: markPrice,
+          openedAt: Date.now(),
+        },
+      ]
+    }
+    return next
+  }
+
+  if (existing) {
+    const totalLots = existing.lots + fill.lots
+    const avgPrice = (existing.avgPrice * existing.lots + fillPrice * fill.lots) / totalLots
+    return positions.map((p) => (p === existing ? { ...p, lots: totalLots, avgPrice, ltp: markPrice } : p))
+  }
+
+  return [
+    ...positions,
+    {
+      id: crypto.randomUUID(),
+      underlying: fill.underlying,
+      kind: fill.kind,
+      strike: fill.strike,
+      expiry: fill.expiry,
+      side: fill.side,
+      lots: fill.lots,
+      lotSize: fill.lotSize,
+      avgPrice: fillPrice,
+      ltp: markPrice,
+      openedAt: Date.now(),
+    },
+  ]
 }
 
 // Local calendar date, not UTC — IST is ahead of UTC, so toISOString() can
@@ -53,7 +127,37 @@ export const usePortfolioStore = create<PortfolioState>()(
       todayIntradayPoints: [],
 
       placeOrder: (draft) => {
-        const fillPrice = draft.orderType === "LIMIT" && draft.limitPrice ? draft.limitPrice : draft.marketPrice
+        const wantsLimit = draft.orderType === "LIMIT" && draft.limitPrice !== undefined
+        const marketable = !wantsLimit || isMarketable(draft.side, draft.limitPrice!, draft.marketPrice)
+
+        if (!marketable) {
+          // Resting order: a real exchange holds this in the book at your
+          // limit price until the market comes to it (or it's cancelled) —
+          // it does not fill immediately at an unreachable price, and it
+          // does not create a position or move cash until it actually does.
+          const order: OrderRecord = {
+            id: crypto.randomUUID(),
+            timestamp: Date.now(),
+            underlying: draft.underlying,
+            kind: draft.kind,
+            strike: draft.strike,
+            expiry: draft.expiry,
+            side: draft.side,
+            orderType: draft.orderType,
+            lots: draft.lots,
+            lotSize: draft.lotSize,
+            price: draft.limitPrice!,
+            status: "PENDING",
+          }
+          set((state) => ({ orders: [order, ...state.orders] }))
+          return { status: "PENDING", price: draft.limitPrice! }
+        }
+
+        // Marketable: fills at the current price, not the typed limit — a
+        // marketable limit order gets whatever's actually achievable right
+        // now (at least as good as the limit you set), same as a real
+        // exchange would give you.
+        const fillPrice = draft.marketPrice
         const contractSize = draft.lots * draft.lotSize
         const cashDelta = draft.side === "BUY" ? -fillPrice * contractSize : fillPrice * contractSize
 
@@ -72,80 +176,36 @@ export const usePortfolioStore = create<PortfolioState>()(
           status: "FILLED",
         }
 
+        set((state) => ({
+          cashBalance: state.cashBalance + cashDelta,
+          positions: applyFillToPositions(state.positions, draft, fillPrice, draft.marketPrice),
+          orders: [order, ...state.orders],
+        }))
+        return { status: "FILLED", price: fillPrice }
+      },
+
+      fillPendingOrder: (orderId, fillPrice) => {
         set((state) => {
-          const key = positionKey(draft)
-          const existing = state.positions.find(
-            (p) => positionKey(p) === key && p.side === draft.side,
-          )
-          const opposite = state.positions.find(
-            (p) => positionKey(p) === key && p.side !== draft.side,
-          )
+          const order = state.orders.find((o) => o.id === orderId && o.status === "PENDING")
+          if (!order) return state
 
-          let positions = state.positions
-
-          if (opposite) {
-            const closingLots = Math.min(opposite.lots, draft.lots)
-            const remainingLots = opposite.lots - closingLots
-            positions = state.positions
-              .map((p) =>
-                p === opposite
-                  ? remainingLots > 0
-                    ? { ...p, lots: remainingLots }
-                    : null
-                  : p,
-              )
-              .filter((p): p is Position => p !== null)
-
-            const leftoverNewLots = draft.lots - closingLots
-            if (leftoverNewLots > 0) {
-              positions = [
-                ...positions,
-                {
-                  id: crypto.randomUUID(),
-                  underlying: draft.underlying,
-                  kind: draft.kind,
-                  strike: draft.strike,
-                  expiry: draft.expiry,
-                  side: draft.side,
-                  lots: leftoverNewLots,
-                  lotSize: draft.lotSize,
-                  avgPrice: fillPrice,
-                  ltp: draft.marketPrice,
-                  openedAt: Date.now(),
-                },
-              ]
-            }
-          } else if (existing) {
-            const totalLots = existing.lots + draft.lots
-            const avgPrice = (existing.avgPrice * existing.lots + fillPrice * draft.lots) / totalLots
-            positions = state.positions.map((p) =>
-              p === existing ? { ...p, lots: totalLots, avgPrice, ltp: draft.marketPrice } : p,
-            )
-          } else {
-            positions = [
-              ...state.positions,
-              {
-                id: crypto.randomUUID(),
-                underlying: draft.underlying,
-                kind: draft.kind,
-                strike: draft.strike,
-                expiry: draft.expiry,
-                side: draft.side,
-                lots: draft.lots,
-                lotSize: draft.lotSize,
-                avgPrice: fillPrice,
-                ltp: draft.marketPrice,
-                openedAt: Date.now(),
-              },
-            ]
-          }
+          const contractSize = order.lots * order.lotSize
+          const cashDelta = order.side === "BUY" ? -fillPrice * contractSize : fillPrice * contractSize
 
           return {
             cashBalance: state.cashBalance + cashDelta,
-            positions,
-            orders: [order, ...state.orders],
+            positions: applyFillToPositions(state.positions, order, fillPrice, fillPrice),
+            orders: state.orders.map((o) =>
+              o.id === orderId ? { ...o, status: "FILLED", price: fillPrice, filledAt: Date.now() } : o,
+            ),
           }
         })
+      },
+
+      cancelOrder: (orderId) => {
+        set((state) => ({
+          orders: state.orders.map((o) => (o.id === orderId && o.status === "PENDING" ? { ...o, status: "CANCELLED" } : o)),
+        }))
       },
 
       markToMarket: (ltpBySymbolKey) => {
@@ -206,6 +266,25 @@ export const usePortfolioStore = create<PortfolioState>()(
     { name: "paisa-paper-portfolio" },
   ),
 )
+
+const STORAGE_KEY = "paisa-paper-portfolio"
+
+// Without this, a second tab left open (e.g. Option Chain in one, Portfolio
+// in another — an entirely normal way to use this app) keeps its own stale
+// in-memory copy of the store. MarkToMarketEngine/DailyPnlEngine tick in
+// every open tab independently, and each tick's set() call flushes that
+// tab's *entire* current state back to localStorage — so a stale tab
+// silently overwrites trades made in a fresher one the moment its own timer
+// next fires. The native `storage` event only fires on tabs that didn't make
+// the write, which is exactly what's needed here: catch it and rehydrate so
+// every tab converges on whatever was written most recently.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === STORAGE_KEY) {
+      usePortfolioStore.persist.rehydrate()
+    }
+  })
+}
 
 export function positionPnl(position: Position): number {
   const direction = position.side === "BUY" ? 1 : -1

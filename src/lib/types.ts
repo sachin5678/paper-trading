@@ -72,8 +72,11 @@ export interface OrderRecord {
   orderType: OrderType
   lots: number
   lotSize: number
+  /** Fill price once FILLED; the resting limit price while still PENDING. */
   price: number
   status: OrderStatus
+  /** Set when a PENDING order later fills — distinct from `timestamp` (placed-at). */
+  filledAt?: number
 }
 
 export interface OrderDraft {

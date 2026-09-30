@@ -3,7 +3,7 @@ import { X } from "lucide-react"
 import clsx from "clsx"
 import type { OrderType, OrderSide, OptionKind } from "../lib/types"
 import { formatInr, formatNumber } from "../lib/format"
-import { usePortfolioStore } from "../lib/store"
+import { isMarketable, usePortfolioStore } from "../lib/store"
 
 export interface OrderTicketContext {
   underlying: string
@@ -41,7 +41,11 @@ export function OrderTicket({ context, onClose, onPlaced }: OrderTicketProps) {
 
   if (!context) return null
 
-  const price = orderType === "LIMIT" ? limitPrice : context.marketPrice
+  // A limit order only fills at the typed price when it's actually reachable
+  // right now; otherwise it rests until the market gets there, same as a
+  // real exchange (see isMarketable / placeOrder in store.ts).
+  const wouldBeMarketable = orderType === "MARKET" || isMarketable(side, limitPrice, context.marketPrice)
+  const price = orderType === "MARKET" || wouldBeMarketable ? context.marketPrice : limitPrice
   const contractSize = lots * context.lotSize
   const totalValue = price * contractSize
   // Buying an option costs exactly the premium, no more — that's real.
@@ -57,7 +61,7 @@ export function OrderTicket({ context, onClose, onPlaced }: OrderTicketProps) {
 
   function handleSubmit() {
     if (!context) return
-    placeOrder({
+    const result = placeOrder({
       underlying: context.underlying,
       kind: context.kind,
       strike: context.strike,
@@ -69,8 +73,11 @@ export function OrderTicket({ context, onClose, onPlaced }: OrderTicketProps) {
       limitPrice: orderType === "LIMIT" ? limitPrice : undefined,
       marketPrice: context.marketPrice,
     })
+    const label = `${side} ${lots} lot${lots > 1 ? "s" : ""} of ${context.underlying} ${context.strike} ${context.kind}`
     onPlaced(
-      `${side} ${lots} lot${lots > 1 ? "s" : ""} of ${context.underlying} ${context.strike} ${context.kind} filled at ${formatInr(price)} (simulated).`,
+      result.status === "FILLED"
+        ? `${label} filled at ${formatInr(result.price)} (simulated).`
+        : `${label} placed at ${formatInr(result.price)} — resting until the market reaches your price (simulated).`,
     )
     onClose()
   }
@@ -186,6 +193,14 @@ export function OrderTicket({ context, onClose, onPlaced }: OrderTicketProps) {
                 onChange={(e) => setLimitPrice(Number(e.target.value) || 0)}
                 className="min-h-11 w-full border border-[var(--color-border)] bg-[var(--color-bg-inset)] px-3 font-mono font-tabular text-[var(--color-text)] outline-none focus-visible:border-[var(--color-amber)]"
               />
+              <p
+                className="mt-1.5 text-[11px]"
+                style={{ color: wouldBeMarketable ? "var(--color-up)" : "var(--color-text-faint)" }}
+              >
+                {wouldBeMarketable
+                  ? `Marketable now — fills immediately near ${formatInr(context.marketPrice)}.`
+                  : `Not marketable yet — rests until ${side === "BUY" ? "the price drops to" : "the price rises to"} ${formatInr(limitPrice)}.`}
+              </p>
             </div>
           )}
 
@@ -215,7 +230,7 @@ export function OrderTicket({ context, onClose, onPlaced }: OrderTicketProps) {
                 : "bg-[var(--color-down)] text-black hover:brightness-110",
             )}
           >
-            {side} {context.underlying} {context.kind} · {formatInr(price)}
+            {wouldBeMarketable ? side : `Place ${side} limit`} {context.underlying} {context.kind} · {formatInr(price)}
           </button>
           <p className="mt-2 text-center text-[11px] text-[var(--color-text-faint)]">
             Simulated fill. No real order is sent to NSE or BSE.

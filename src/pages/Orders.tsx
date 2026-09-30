@@ -1,9 +1,12 @@
+import clsx from "clsx"
 import { formatInr, formatNumber } from "../lib/format"
 import { usePortfolioStore } from "../lib/store"
+import type { OrderStatus } from "../lib/types"
 import { Panel } from "../components/Panel"
 
 export default function Orders() {
   const orders = usePortfolioStore((s) => s.orders)
+  const cancelOrder = usePortfolioStore((s) => s.cancelOrder)
 
   return (
     <div className="space-y-4">
@@ -24,7 +27,7 @@ export default function Orders() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
+            <table className="w-full min-w-[780px] text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
                   <th className="px-4 py-2">Time</th>
@@ -35,6 +38,7 @@ export default function Orders() {
                   <th className="px-4 py-2 text-right">Qty</th>
                   <th className="px-4 py-2 text-right">Price</th>
                   <th className="px-4 py-2 text-right">Status</th>
+                  <th className="px-4 py-2 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -52,8 +56,23 @@ export default function Orders() {
                     </td>
                     <td className="px-4 py-2 text-right font-sans text-[var(--color-text-dim)]">{o.orderType}</td>
                     <td className="px-4 py-2 text-right">{formatNumber(o.lots * o.lotSize)}</td>
-                    <td className="px-4 py-2 text-right">{formatInr(o.price)}</td>
-                    <td className="px-4 py-2 text-right font-sans text-[var(--color-up)]">{o.status}</td>
+                    <td className="px-4 py-2 text-right">
+                      {formatInr(o.price)}
+                      {o.status === "PENDING" && (
+                        <span className="ml-1 font-sans text-[10px] text-[var(--color-text-faint)]">(limit)</span>
+                      )}
+                    </td>
+                    <td className={clsx("px-4 py-2 text-right font-sans", statusColor(o.status))}>{o.status}</td>
+                    <td className="px-4 py-2 text-right font-sans">
+                      {o.status === "PENDING" && (
+                        <button
+                          onClick={() => cancelOrder(o.id)}
+                          className="min-h-8 border border-[var(--color-border)] px-2.5 py-1 text-xs text-[var(--color-text-dim)] hover:border-[var(--color-down)] hover:text-[var(--color-down)]"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -63,4 +82,10 @@ export default function Orders() {
       </Panel>
     </div>
   )
+}
+
+function statusColor(status: OrderStatus): string {
+  if (status === "FILLED") return "text-[var(--color-up)]"
+  if (status === "PENDING") return "text-[var(--color-amber)]"
+  return "text-[var(--color-text-faint)]"
 }
