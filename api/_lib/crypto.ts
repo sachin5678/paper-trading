@@ -57,3 +57,33 @@ function requireAdminSecret(): string {
   if (!secret) throw new Error("ADMIN_SECRET is not set")
   return secret
 }
+
+// General-purpose signed, self-contained token — same HMAC + constant-time-
+// compare discipline as the OAuth state above, generalized to carry an
+// arbitrary JSON payload and an explicit TTL. Used for user session tokens;
+// kept separate from signOAuthState/verifyOAuthState above rather than
+// rewriting those in terms of it, so the already-verified OAuth flow isn't
+// touched by this change.
+export function signPayload<T extends object>(payload: T, secret: string, ttlMs: number): string {
+  const body = Buffer.from(JSON.stringify({ ...payload, iat: Date.now(), ttl: ttlMs })).toString("base64url")
+  const signature = createHmac("sha256", secret).update(body).digest("base64url")
+  return `${body}.${signature}`
+}
+
+export function verifyPayload<T>(token: string, secret: string): T | null {
+  const [body, signature] = token.split(".")
+  if (!body || !signature) return null
+
+  const expected = createHmac("sha256", secret).update(body).digest("base64url")
+  const a = Buffer.from(signature)
+  const b = Buffer.from(expected)
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null
+
+  try {
+    const decoded = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as T & { iat: number; ttl: number }
+    if (Date.now() - decoded.iat > decoded.ttl) return null
+    return decoded
+  } catch {
+    return null
+  }
+}

@@ -5,12 +5,14 @@ import { TickerRibbon } from "./TickerRibbon"
 import { MobileNav } from "./MobileNav"
 import { MarkToMarketEngine } from "./MarkToMarketEngine"
 import { DailyPnlEngine } from "./DailyPnlEngine"
+import { PortfolioSyncEngine } from "./PortfolioSyncEngine"
 
 export function AppShell() {
   return (
     <div className="flex min-h-dvh flex-col bg-[var(--color-bg)]">
       <MarkToMarketEngine />
       <DailyPnlEngine />
+      <PortfolioSyncEngine />
       <Topbar />
       <TickerRibbon />
       <div className="flex flex-1">

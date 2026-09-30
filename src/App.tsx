@@ -7,6 +7,7 @@ import OptionChain from "./pages/OptionChain"
 import Portfolio from "./pages/Portfolio"
 import Orders from "./pages/Orders"
 import AdminBroker from "./pages/AdminBroker"
+import Login from "./pages/Login"
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="orders" element={<Orders />} />
         <Route path="admin/broker" element={<AdminBroker />} />
+        <Route path="login" element={<Login />} />
       </Route>
     </Routes>
   )

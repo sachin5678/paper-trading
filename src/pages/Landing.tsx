@@ -46,7 +46,9 @@ export default function Landing() {
               >
                 Start paper trading
               </Link>
-              <p className="text-xs text-[var(--color-text-faint)]">No signup. No card. No real money, ever.</p>
+              <p className="text-xs text-[var(--color-text-faint)]">
+                No signup required to start. No card. No real money, ever.
+              </p>
             </div>
           </div>
 

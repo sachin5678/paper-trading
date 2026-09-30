@@ -16,6 +16,28 @@ const routes: Record<string, () => Promise<{ default: Handler }>> = {
   "/api/broker/upstox/callback": () => import("../api/broker/upstox/callback.js"),
   "/api/market/option-chain": () => import("../api/market/option-chain.js"),
   "/api/market/indices": () => import("../api/market/indices.js"),
+  "/api/auth/signup": () => import("../api/auth/signup.js"),
+  "/api/auth/login": () => import("../api/auth/login.js"),
+  "/api/portfolio/get": () => import("../api/portfolio/get.js"),
+  "/api/portfolio/save": () => import("../api/portfolio/save.js"),
+}
+
+// Vercel parses a JSON request body into req.body automatically in
+// production; this local shim has to do it itself.
+async function readJsonBody(req: import("node:http").IncomingMessage): Promise<unknown> {
+  const contentType = req.headers["content-type"] ?? ""
+  if (!contentType.includes("application/json")) return undefined
+
+  const chunks: Buffer[] = []
+  for await (const chunk of req) chunks.push(chunk as Buffer)
+  const raw = Buffer.concat(chunks).toString("utf8")
+  if (!raw) return undefined
+
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return undefined
+  }
 }
 
 function withVercelHelpers(res: ServerResponse): VercelResponse {
@@ -51,7 +73,8 @@ const server = createServer(async (req, res) => {
   try {
     const { default: handler } = await loadHandler()
     const query = Object.fromEntries(url.searchParams.entries())
-    const vercelLikeReq = Object.assign(req, { query, cookies: {}, body: undefined }) as unknown as VercelRequest
+    const body = await readJsonBody(req)
+    const vercelLikeReq = Object.assign(req, { query, cookies: {}, body }) as unknown as VercelRequest
     await handler(vercelLikeReq, enhancedRes)
   } catch (err) {
     console.error(err)

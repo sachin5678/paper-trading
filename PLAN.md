@@ -1,5 +1,31 @@
 # Paisa Paper — NSE/BSE options paper-trading terminal
 
+## Status: Phase B (per-user accounts) — done, connected to Neon Postgres
+
+Optional username/password accounts (no email, no third-party auth provider — just
+two plain Postgres tables, read/written server-side). Login is fully optional;
+anonymous/localStorage mode is unchanged. Originally planned around Supabase, but its
+free tier caps an account at 2 active projects; switched to talking to plain Postgres
+directly (via the `postgres` npm package), so any host works — connected to a free
+Neon (neon.tech) project, but nothing in the code is Neon-specific.
+
+New: `api/_lib/auth.ts` (scrypt password hashing, HMAC session tokens), `api/_lib/db.ts`
+(the Postgres connection, via `DATABASE_URL`), `api/auth/{signup,login}.ts`,
+`api/portfolio/{get,save}.ts`, `src/lib/authClient.ts`, `src/pages/Login.tsx`
+(`/app/login`), and `src/components/PortfolioSyncEngine.tsx` (mounted in `AppShell`,
+debounce-saves the whole portfolio store to your account ~2.5s after each change; on
+login, an existing account's saved state replaces local state, a brand-new account
+uploads current local state as its starting history).
+
+Typechecked, linted, built, and verified end-to-end against the real Neon database:
+signed up two accounts, confirmed rows in both `app_users`/`portfolios`, placed a
+trade, cleared all local storage and reloaded to confirm the position came back from
+the database (not memory/localStorage), confirmed the two accounts have fully
+independent portfolios, and confirmed signed-out/anonymous mode is untouched.
+
+`DATABASE_URL` and `SESSION_SECRET` are set in local `.env`. **Still to do:** add both
+to Vercel's production environment variables before this reaches production.
+
 ## Daily & intraday P&L tracking
 
 `DailyPnlEngine` (mounted in AppShell, alongside `MarkToMarketEngine`) samples total
