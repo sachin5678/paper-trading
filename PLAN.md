@@ -1,4 +1,4 @@
-# Bazar Paper — NSE/BSE options paper-trading terminal
+# Bazar on Paper — NSE/BSE options paper-trading terminal
 
 ## Status: Phase B (per-user accounts) — done, connected to Neon Postgres
 

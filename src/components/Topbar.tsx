@@ -25,11 +25,11 @@ export function Topbar() {
 
   return (
     <header className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-bg-raised)] px-4 py-3">
-      <div className="flex items-baseline gap-2">
+      <Link to="/" className="flex items-baseline gap-2">
         <span className="font-mono text-lg font-semibold tracking-tight text-[var(--color-amber)]">
-          बाज़ार<span className="text-[var(--color-text)]">Paper</span>
+          Bazar<span className="text-[var(--color-text)]"> on Paper</span>
         </span>
-      </div>
+      </Link>
 
       <div className="flex items-center gap-5">
         <div className="hidden text-right sm:block">

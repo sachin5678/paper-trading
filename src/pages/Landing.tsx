@@ -15,7 +15,7 @@ export default function Landing() {
 
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <span className="font-mono text-lg font-semibold tracking-tight text-[var(--color-amber)]">
-          बाज़ार<span className="text-[var(--color-text)]">Paper</span>
+          Bazar<span className="text-[var(--color-text)]"> on Paper</span>
         </span>
         <Link
           to="/app"
@@ -35,7 +35,7 @@ export default function Landing() {
               Trade options on NIFTY and SENSEX without spending a rupee.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--color-text-dim)]">
-              Bazar Paper gives you a live-feeling option chain, real lot sizes and strike intervals, and{" "}
+              Bazar on Paper gives you a live-feeling option chain, real lot sizes and strike intervals, and{" "}
               <span className="text-[var(--color-text)]">₹20,00,000</span> in virtual capital — so you can learn how
               F&amp;O actually trades before a single rupee is at risk.
             </p>
@@ -92,7 +92,7 @@ export default function Landing() {
       <footer className="border-t border-[var(--color-border)] px-4 py-6">
         <p className="mx-auto max-w-6xl text-center text-[11px] leading-relaxed text-[var(--color-text-faint)]">
           All prices, quotes and fills on this site are simulated for practice and do not represent real NSE or BSE
-          market data. Bazar Paper is not a broker and does not execute real trades.
+          market data. Bazar on Paper is not a broker and does not execute real trades.
         </p>
       </footer>
     </div>

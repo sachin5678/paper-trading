@@ -1,4 +1,4 @@
-# Bazar Paper
+# Bazar on Paper
 
 A paper-trading terminal for NSE and BSE index options (F&O) — NIFTY, BANKNIFTY and
 SENSEX. Every account starts with ₹20,00,000 in virtual capital; every fill is
