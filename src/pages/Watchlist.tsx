@@ -23,7 +23,7 @@ export default function Watchlist() {
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
             NSE &amp; BSE cash market
           </p>
-          <h1 className="text-xl font-semibold">Watchlist</h1>
+          <h1 className="font-display text-xl font-semibold">Watchlist</h1>
         </div>
         <label className="flex min-h-9 items-center gap-2 text-sm text-[var(--color-text-dim)]">
           <input
@@ -40,7 +40,7 @@ export default function Watchlist() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] text-sm">
             <thead>
-              <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
+              <tr className="whitespace-nowrap border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
                 <th className="px-4 py-2"></th>
                 <th className="px-4 py-2">Symbol</th>
                 <th className="px-4 py-2">Exchange</th>

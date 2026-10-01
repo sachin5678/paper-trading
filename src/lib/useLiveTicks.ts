@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { randomWalk } from "./marketData"
+import { isMarketOpen } from "./marketHours"
 
 export function useLiveTicks<T extends { ltp: number }>(seed: T[], intervalMs = 1800): T[] {
   const [items, setItems] = useState(seed)
@@ -11,7 +12,10 @@ export function useLiveTicks<T extends { ltp: number }>(seed: T[], intervalMs = 
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    const tick = () => setItems((prev) => prev.map((item) => ({ ...item, ltp: randomWalk(item.ltp) })))
+    const tick = () => {
+      if (!isMarketOpen()) return
+      setItems((prev) => prev.map((item) => ({ ...item, ltp: randomWalk(item.ltp) })))
+    }
     const id = window.setInterval(tick, prefersReducedMotion ? intervalMs * 4 : intervalMs)
     return () => window.clearInterval(id)
   }, [intervalMs])

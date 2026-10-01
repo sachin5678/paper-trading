@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import { fetchLiveOptionChain } from "../lib/api"
 import { UNDERLYINGS, buildOptionChain, randomWalk } from "../lib/marketData"
+import { isMarketOpen } from "../lib/marketHours"
 import type { OptionKind } from "../lib/types"
 import { contractKey, isMarketable, usePortfolioStore } from "../lib/store"
 
@@ -84,7 +85,7 @@ export function MarkToMarketEngine() {
         const realSpot = liveChain.source === "live" ? liveChain.underlyingLtp : undefined
         const averageHeldStrike = remaining.reduce((sum, t) => sum + t.strike, 0) / remaining.length
         const spotSeed = realSpot ?? simulatedPrices.current[symbol] ?? averageHeldStrike
-        const nextPrice = realSpot !== undefined ? spotSeed : randomWalk(spotSeed)
+        const nextPrice = realSpot !== undefined || !isMarketOpen() ? spotSeed : randomWalk(spotSeed)
         simulatedPrices.current[symbol] = nextPrice
 
         const byExpiry = new Map<string, PricingTarget[]>()

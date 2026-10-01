@@ -103,7 +103,7 @@ export default function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
-                <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
+                <tr className="whitespace-nowrap border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
                   <th className="px-4 py-2">Instrument</th>
                   <th className="px-4 py-2 text-right">Side</th>
                   <th className="px-4 py-2 text-right">Qty</th>

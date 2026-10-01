@@ -15,8 +15,13 @@ import { Toast } from "../components/Toast"
 // synthetic "current week" tab. Other tabs stay simulated-only for this phase.
 const LIVE_FEED_POLL_MS = 4000
 
+// BANKNIFTY stays in UNDERLYINGS (ticker ribbon, MarkToMarketEngine still
+// need to price any position someone already holds in it) but is hidden from
+// this page's own tab list.
+const CHAIN_UNDERLYINGS = UNDERLYINGS.filter((u) => u.symbol !== "BANKNIFTY")
+
 export default function OptionChain() {
-  const [underlyingSymbol, setUnderlyingSymbol] = useState(UNDERLYINGS[0].symbol)
+  const [underlyingSymbol, setUnderlyingSymbol] = useState(CHAIN_UNDERLYINGS[0].symbol)
   // Each underlying has its own real weekly expiry weekday (NIFTY/BANKNIFTY
   // Tuesday, SENSEX Thursday) — recomputed per underlying, not a single
   // fixed list shared by all three.
@@ -102,7 +107,7 @@ export default function OptionChain() {
           <div className="flex flex-wrap gap-4">
             <TabGroup
               label="Underlying"
-              options={UNDERLYINGS.map((u) => u.symbol)}
+              options={CHAIN_UNDERLYINGS.map((u) => u.symbol)}
               value={underlyingSymbol}
               onChange={setUnderlyingSymbol}
             />
@@ -117,7 +122,7 @@ export default function OptionChain() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[880px] border-collapse text-right text-sm">
             <thead>
-              <tr className="border-b border-[var(--color-border)] text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
+              <tr className="whitespace-nowrap border-b border-[var(--color-border)] text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
                 <Th>OI</Th>
                 <Th>Chg OI%</Th>
                 <Th>Vol</Th>

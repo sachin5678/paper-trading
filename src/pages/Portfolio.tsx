@@ -32,7 +32,7 @@ export default function Portfolio() {
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
           Virtual demat &amp; F&amp;O book
         </p>
-        <h1 className="text-xl font-semibold">Portfolio</h1>
+        <h1 className="font-display text-xl font-semibold">Portfolio</h1>
       </div>
 
       <Panel title="Fund summary" eyebrow="Virtual, resettable anytime">
@@ -63,7 +63,7 @@ export default function Portfolio() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-sm">
               <thead>
-                <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
+                <tr className="whitespace-nowrap border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
                   <th className="px-4 py-2">Instrument</th>
                   <th className="px-4 py-2">Expiry</th>
                   <th className="px-4 py-2 text-right">Side</th>
@@ -149,7 +149,7 @@ export default function Portfolio() {
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[360px] text-sm">
                 <thead>
-                  <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
+                  <tr className="whitespace-nowrap border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
                     <th className="py-2">Date</th>
                     <th className="py-2 text-right">Start equity</th>
                     <th className="py-2 text-right">End equity</th>

@@ -14,7 +14,7 @@ export default function Orders() {
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
           Simulated fills
         </p>
-        <h1 className="text-xl font-semibold">Order book</h1>
+        <h1 className="font-display text-xl font-semibold">Order book</h1>
       </div>
 
       <Panel padded={orders.length === 0}>
@@ -29,7 +29,7 @@ export default function Orders() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[780px] text-sm">
               <thead>
-                <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
+                <tr className="whitespace-nowrap border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
                   <th className="px-4 py-2">Time</th>
                   <th className="px-4 py-2">Instrument</th>
                   <th className="px-4 py-2">Expiry</th>
@@ -64,13 +64,15 @@ export default function Orders() {
                     </td>
                     <td className={clsx("px-4 py-2 text-right font-sans", statusColor(o.status))}>{o.status}</td>
                     <td className="px-4 py-2 text-right font-sans">
-                      {o.status === "PENDING" && (
+                      {o.status === "PENDING" ? (
                         <button
                           onClick={() => cancelOrder(o.id)}
                           className="min-h-8 border border-[var(--color-border)] px-2.5 py-1 text-xs text-[var(--color-text-dim)] hover:border-[var(--color-down)] hover:text-[var(--color-down)]"
                         >
                           Cancel
                         </button>
+                      ) : (
+                        <span className="text-[var(--color-text-faint)]">—</span>
                       )}
                     </td>
                   </tr>

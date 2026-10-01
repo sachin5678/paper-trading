@@ -3,6 +3,7 @@ import { INDICES } from "../lib/marketData"
 import { useLiveTicks } from "../lib/useLiveTicks"
 import { fetchLiveIndices, type IndicesFeed } from "../lib/api"
 import { formatNumber } from "../lib/format"
+import { isMarketOpen } from "../lib/marketHours"
 import { FeedBadge } from "./FeedBadge"
 
 const POLL_MS = 4000
@@ -10,6 +11,12 @@ const POLL_MS = 4000
 export function TickerRibbon() {
   const simulated = useLiveTicks(INDICES)
   const [feed, setFeed] = useState<IndicesFeed | null>(null)
+  const [marketOpen, setMarketOpen] = useState(isMarketOpen)
+
+  useEffect(() => {
+    const id = window.setInterval(() => setMarketOpen(isMarketOpen()), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -58,7 +65,13 @@ export function TickerRibbon() {
           )
         })}
       </div>
-      <div className="ml-auto shrink-0">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
+        {!marketOpen && (
+          <span className="inline-flex items-center gap-1.5 border border-[var(--color-border-strong)] px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-text-faint)]" aria-hidden="true" />
+            Market closed
+          </span>
+        )}
         <FeedBadge source={isLive ? "live" : "simulated"} />
       </div>
     </div>
