@@ -28,7 +28,7 @@ export default function IntradayMtm() {
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-text-faint)]">
           Today · minute by minute
         </p>
-        <h1 className="text-xl font-semibold text-[var(--color-text)]">Intraday MTM</h1>
+        <h1 className="font-display text-xl font-semibold text-[var(--color-text)]">Intraday MTM</h1>
       </div>
 
       <Panel padded={false}>

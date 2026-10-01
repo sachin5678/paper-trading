@@ -14,7 +14,7 @@ export default function Landing() {
       <TickerRibbon />
 
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <span className="font-mono text-lg font-semibold tracking-tight text-[var(--color-amber)]">
+        <span className="font-display text-lg font-semibold tracking-tight text-[var(--color-amber)]">
           Bazar<span className="text-[var(--color-text)]"> on Paper</span>
         </span>
         <Link
@@ -31,7 +31,7 @@ export default function Landing() {
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-paper)]">
               Simulated NSE &amp; BSE F&amp;O
             </p>
-            <h1 className="mt-3 text-4xl font-semibold leading-[1.08] tracking-tight text-[var(--color-text)] sm:text-5xl">
+            <h1 className="font-display mt-3 text-4xl font-semibold leading-[1.08] tracking-tight text-[var(--color-text)] sm:text-5xl">
               Trade options on NIFTY and SENSEX without spending a rupee.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--color-text-dim)]">

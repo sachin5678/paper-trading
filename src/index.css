@@ -6,6 +6,9 @@
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
 @import "@fontsource/ibm-plex-mono/600.css";
+@import "@fontsource/space-grotesk/500.css";
+@import "@fontsource/space-grotesk/600.css";
+@import "@fontsource/space-grotesk/700.css";
 
 /*
   Design language: "exchange ticker board".
@@ -19,6 +22,10 @@
 @theme {
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  /* Reserved for headline moments only — the wordmark, the landing hero, and
+     each page's own H1 — never for data or dense UI chrome, which stay on
+     the sans/mono pair above. */
+  --font-display: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, sans-serif;
 
   --color-bg: #05070c;
   --color-bg-raised: #0b0e16;
